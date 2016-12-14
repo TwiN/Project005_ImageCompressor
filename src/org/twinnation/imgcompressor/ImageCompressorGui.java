@@ -38,8 +38,6 @@ public class ImageCompressorGui extends JPanel implements ActionListener {
 		btnCompress.addActionListener(this);
 		btnCompress.setEnabled(false);
 
-
-
 		// For layout purposes, put the buttons in a separate panel
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.add(btnBrowse);
@@ -126,17 +124,24 @@ public class ImageCompressorGui extends JPanel implements ActionListener {
 			}
 			log.append("Compression factor set to "+e.getActionCommand()+"\n");
 		} else if (e.getActionCommand().equalsIgnoreCase("Compress")) {
-			log.append("\n=== COMPRESSION START ===\n");
-			for (int i = 0; i<filePaths.length; i++) {
-				log.append("Compressing "+filePaths[i]+" ...\n");
-				try {
-					String result = imageCompressor.compressJPG(filePaths[i]);
-					log.append(result+"\n");
-				} catch (Exception ex) {
-					ex.printStackTrace();
+			// Run on a different thread so the GUI doesn't freeze
+			(new Thread() {
+				public void run() {
+					log.append("\n=== COMPRESSION START ===\n");
+					for (int i = 0; i<filePaths.length; i++) {
+						log.append("Compressing "+filePaths[i]+" ...\n");
+						try {
+							String result = imageCompressor.compressJPG(filePaths[i]);
+							log.append(result+"\n");
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+						// always stay at bottom of log
+						log.setCaretPosition(log.getDocument().getLength());
+					}
+					log.append("\n=== COMPRESSION END ===\n");
 				}
-			}
-			log.append("\n=== COMPRESSION END ===\n");
+			}).start();
 		} else {
 			log.append("Invalid command.\n");
 		}

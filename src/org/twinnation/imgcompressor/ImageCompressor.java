@@ -89,7 +89,7 @@ public class ImageCompressor {
 			}
 			outputImg.renameTo(new File(outputFolder+"/"+outputImg.getName()));
 		}
-		System.out.println("The image is "+(int)((difference/inputImg.length())*100)+"% less large.");
+		//System.out.println("The image is "+(int)((difference/inputImg.length())*100)+"% less large.");
 		return "The image is "+(int)((difference/inputImg.length())*100)+"% less large.";
 	}
 

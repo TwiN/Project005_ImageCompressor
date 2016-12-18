@@ -9,17 +9,20 @@ import javax.swing.*;
 
 public class ImageCompressorGui extends JPanel implements ActionListener {
 
-	private JButton btnBrowse, btnCompress;
-	private JTextArea log;
+	private JButton btnBrowse;
+	private static JButton btnCompress;
+	private static JTextArea log;
 	private JFileChooser fc;
-	private String[] filePaths;
-	private ImageCompressor imageCompressor;
+	private static String[] filePaths;
+	private static ImageCompressor imageCompressor;
+
 
 	public ImageCompressorGui() {
 		super(new BorderLayout());
 
 		// Instantiate the image compressor
 		imageCompressor = new ImageCompressor();
+		filePaths = new String[0];
 		imageCompressor.setOutputFolder(System.getProperty("user.home") +"/Desktop/CompressedImages");
 
 		// Creates the log
@@ -32,6 +35,7 @@ public class ImageCompressorGui extends JPanel implements ActionListener {
 		// Create the open button
 		btnBrowse = new JButton("Browse");
 		btnBrowse.addActionListener(this);
+		btnBrowse.setTransferHandler(new DnDFileTransferHandler());
 
 		// Create the save button
 		btnCompress = new JButton("Compress");
@@ -76,7 +80,11 @@ public class ImageCompressorGui extends JPanel implements ActionListener {
 		add(buttonPanel, BorderLayout.PAGE_START);
 		add(logScrollPane, BorderLayout.CENTER);
 		add(compressionLevelPanel, BorderLayout.AFTER_LAST_LINE);
+
+		// init msg
+		log("NOTE: Drag and dropping JPG files directly on \nthe 'Browse' button will automatically \ncompress them.\n");
 	}
+
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -89,6 +97,8 @@ public class ImageCompressorGui extends JPanel implements ActionListener {
 				fc.setAcceptAllFileFilterUsed(false);
 				// Allow multiple files to be selected
 				fc.setMultiSelectionEnabled(true);
+				// Allows file from within file chooser to be dragged/dropped outside
+				fc.setDragEnabled(true);
 			}
 
 			// pops up dialog
@@ -99,10 +109,10 @@ public class ImageCompressorGui extends JPanel implements ActionListener {
 				btnCompress.setEnabled(true);
 				File[] files = fc.getSelectedFiles();
 				filePaths = new String[files.length];
-				for (int i = 0; i <filePaths.length; i++) {
+				for (int i = 0; i < filePaths.length; i++) {
 					filePaths[i] = files[i].getAbsolutePath();
 				}
-				log.append(files.length + " files selected\n");
+				log(files.length + " files selected");
 			}
 			log.setCaretPosition(log.getDocument().getLength());
 
@@ -122,31 +132,56 @@ public class ImageCompressorGui extends JPanel implements ActionListener {
 					imageCompressor.setCompressionFactor(ImageCompressor.MED_COMPRESSION_FACTOR);
 					break;
 			}
-			log.append("Compression factor set to "+e.getActionCommand()+"\n");
+			log("Compression factor set to "+e.getActionCommand());
 		} else if (e.getActionCommand().equalsIgnoreCase("Compress")) {
 			// Run on a different thread so the GUI doesn't freeze
 			(new Thread() {
 				public void run() {
-					log.append("\n=== COMPRESSION START ===\n");
-					for (int i = 0; i<filePaths.length; i++) {
-						log.append("Compressing "+filePaths[i]+" ...\n");
+					log("\n=== COMPRESSION START ===");
+					for (int i = 0; i < filePaths.length; i++) {
+						log("Compressing "+filePaths[i]+" ...");
 						try {
 							String result = imageCompressor.compressJPG(filePaths[i]);
-							log.append(result+"\n");
+							log(result);
 						} catch (Exception ex) {
 							ex.printStackTrace();
 						}
 						// always stay at bottom of log
 						log.setCaretPosition(log.getDocument().getLength());
 					}
-					log.append("\n=== COMPRESSION END ===\n");
+					log("\n=== COMPRESSION END ===");
+					clearFilePaths();
 				}
 			}).start();
 		} else {
-			log.append("Invalid command.\n");
+			log("Invalid command.");
 		}
 	}
 
+
+	// TODO: make this prettier. This is only used for the Drag n drop feature
+	static void dragNdropCompress(String path) throws Exception {
+		String ext = path.substring(path.lastIndexOf('.')+1);
+		if (ext.equalsIgnoreCase("jpg") || ext.equalsIgnoreCase("jpeg")) {
+			String result = imageCompressor.compressJPG(path);
+			log(result);
+		} else {
+			log("[DENIED] File type not supported");
+		}
+
+	}
+
+
+	private static void clearFilePaths() {
+		btnCompress.setEnabled(false);
+		log("Cleared filePaths list");
+		filePaths = new String[0];
+	}
+
+
+	private static void log(String msg) {
+		log.append(msg+"\n");
+	}
 
 	public static void main(String[] args) {
 		JFrame frame = new JFrame("Image Compressor");
@@ -155,5 +190,4 @@ public class ImageCompressorGui extends JPanel implements ActionListener {
 		frame.pack();
 		frame.setVisible(true);
 	}
-
 }

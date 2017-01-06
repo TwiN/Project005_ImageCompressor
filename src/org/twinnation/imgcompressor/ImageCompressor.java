@@ -40,10 +40,16 @@ public class ImageCompressor {
 		this.outputFolder = outputFolder;
 	}
 
-
+	/**
+	 * Compresses the JPG image file at the given path
+	 * @param imageFileName Path of the JPG image file
+	 * @return The result of the operation (String)
+	 * @throws Exception
+	 */
 	public String compressJPG(String imageFileName) throws Exception {
 		String extension = imageFileName.substring(imageFileName.lastIndexOf('.')+1);
 		String baseName = imageFileName.substring(0, imageFileName.lastIndexOf('.'));
+		// TODO: add option to have "_min" at the end of the converted file or not
 		String outputImageFileName = baseName + "_min." + extension;
 
 		File inputImg = new File(imageFileName); // source

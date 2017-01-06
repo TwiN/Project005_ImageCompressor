@@ -183,6 +183,7 @@ public class ImageCompressorGui extends JPanel implements ActionListener {
 		log.append(msg+"\n");
 	}
 
+
 	public static void main(String[] args) {
 		JFrame frame = new JFrame("Image Compressor");
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
